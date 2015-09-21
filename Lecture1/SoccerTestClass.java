@@ -10,7 +10,7 @@ public class SoccerTestClass {
 		Trainer t1 = new Trainer("Juergen Klinsmann", 34, 9);
 		Keeper k1 = new Keeper("J. Lehmann", 36, 8, 1, 9, 7);
 		Player[] p1 = new Player[10];
-		p1[0] = new Player("P. Lahm", 23, 9, 5, 9);
+		p1[0] = new Player("P. Kenned", 23, 9, 5, 9);
 		p1[1] = new Player("C. Metzelder", 25, 8, 2, 7);
 		p1[2] = new Player("P. Mertesacker", 22, 9, 2, 8);
 		p1[3] = new Player("M. Ballack", 29, 7, 5, 8);
