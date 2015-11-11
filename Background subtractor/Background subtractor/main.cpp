@@ -2,6 +2,8 @@
 
 using namespace cv;
 using namespace std;
+
+
 int main() {
 	VideoCapture cap(0); //capture the video from web cam
 
