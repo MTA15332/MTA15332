@@ -62,7 +62,7 @@ int forwardmapping(int cols,int rows,float Bx,float By){
 
 			if (r1 >= 0 && r1 < rows && c1 >= 0 && c1 < cols) // If statement to check whether or not the image will be within the boundary
 			{
-				FMout.at<uchar>(r, c) = src.at<uchar>(r1, c1); // set value of the new point
+				FMout.at<uchar>(r1, c1) = src.at<uchar>(r, c); // set value of the new point
 
 			}
 

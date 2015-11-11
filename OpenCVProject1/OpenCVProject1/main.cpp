@@ -1,42 +1,73 @@
+#include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
 #include <iostream>
 
 using namespace cv;
 using namespace std;
-
-int main(int argc, char* argv[])
+int main(int argc, char** argv)
 {
-	VideoCapture cap("C:/Users/SHERMAL/Desktop/SampleVideo.avi"); // open the video file for reading
+	VideoCapture cap(0); //capture the video from web cam
 
 	if (!cap.isOpened())  // if not success, exit program
 	{
-		cout << "Cannot open the video file" << endl;
+		cout << "Cannot open the web cam" << endl;
 		return -1;
 	}
 
-	//cap.set(CV_CAP_PROP_POS_MSEC, 300); //start the video at 300ms
+	namedWindow("Control", CV_WINDOW_AUTOSIZE); //create a window called "Control"
 
-	double fps = cap.get(CV_CAP_PROP_FPS); //get the frames per seconds of the video
+	int iLowH = 0;
+	int iHighH = 179;
 
-	cout << "Frame per seconds : " << fps << endl;
+	int iLowS = 0;
+	int iHighS = 255;
 
-	namedWindow("MyVideo", CV_WINDOW_AUTOSIZE); //create a window called "MyVideo"
+	int iLowV = 0;
+	int iHighV = 255;
 
-	while (1)
+	//Create trackbars in "Control" window
+	cvCreateTrackbar("LowH", "Control", &iLowH, 179); //Hue (0 - 179)
+	cvCreateTrackbar("HighH", "Control", &iHighH, 179);
+
+	cvCreateTrackbar("LowS", "Control", &iLowS, 255); //Saturation (0 - 255)
+	cvCreateTrackbar("HighS", "Control", &iHighS, 255);
+
+	cvCreateTrackbar("LowV", "Control", &iLowV, 255);//Value (0 - 255)
+	cvCreateTrackbar("HighV", "Control", &iHighV, 255);
+
+	while (true)
 	{
-		Mat frame;
+		Mat imgOriginal;
 
-		bool bSuccess = cap.read(frame); // read a new frame from video
+		bool bSuccess = cap.read(imgOriginal); // read a new frame from video
 
 		if (!bSuccess) //if not success, break loop
 		{
-			cout << "Cannot read the frame from video file" << endl;
+			cout << "Cannot read a frame from video stream" << endl;
 			break;
 		}
 
-		imshow("MyVideo", frame); //show the frame in "MyVideo" window
+		Mat imgHSV;
 
-		if (waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
+		cvtColor(imgOriginal, imgHSV, COLOR_BGR2HSV); //Convert the captured frame from BGR to HSV
+
+		Mat imgThresholded;
+
+		inRange(imgHSV, Scalar(iLowH, iLowS, iLowV), Scalar(iHighH, iHighS, iHighV), imgThresholded); //Threshold the image
+
+		//morphological opening (removes small objects from the foreground)
+		erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)));
+		dilate(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)));
+
+		//morphological closing (removes small holes from the foreground)
+		dilate(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)));
+		erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)));
+
+		imshow("Thresholded Image", imgThresholded); //show the thresholded image
+		imshow("Original", imgOriginal); //show the original image
+
+		if (waitKey(30) == 27) //wait for 'esc' key press for 30ms. If 'esc' key is pressed, break loop
 		{
 			cout << "esc key is pressed by user" << endl;
 			break;
@@ -44,5 +75,4 @@ int main(int argc, char* argv[])
 	}
 
 	return 0;
-
 }

@@ -15,6 +15,7 @@ using namespace cv;
 //int resY = GetSystemMetrics(SM_CYSCREEN);
 int resX = 800;
 int resY = 800;
+int mar = 50;
 int filenumber = 1;
 random_device rdx;
 random_device rdy;
@@ -26,19 +27,19 @@ Mat img = Mat::zeros(resY, resX, CV_64F);
 int pointX = randomX(randx);
 int pointY = randomY(randy);
 void drawCircle(){
-	if (pointX > resX - 50){
-		pointX = pointX - 50;
+	if (pointX > resX - mar){
+		pointX = pointX - mar;
 	}
-	if (pointY > resY - 50){
-		pointY = pointY - 50;
+	if (pointY > resY - mar){
+		pointY = pointY - mar;
 	}
-	if (pointX < 50){
-		pointX = pointX + 50;
+	if (pointX < mar){
+		pointX = pointX + mar;
 	}
-	if (pointY < 50){
-		pointY = pointY + 50;
+	if (pointY < mar){
+		pointY = pointY + mar;
 	}
-	int radius = 100;
+	int radius = 50;
 	int cPx = pointX;
 	int cPy = pointY;
 	for (int i = 1; i <= 3; i++){
@@ -82,7 +83,7 @@ void CallBackFunc(int event, int x, int y, int flags, void* userdata)
 		}
 		ostringstream name;
 		ostringstream namedist;
-		name << "C:/Users/Christian/Desktop/lofitest/lofitestpic" << filenumber << ".png";
+		name << "C:/Users/Dennis/Desktop/lofitest/lofitestpic" << filenumber << ".png";
 		
 		dist = sqrt(distx*distx) + sqrt(disty*disty);
 		namedist << "Distance from center: " << dist;
@@ -90,8 +91,8 @@ void CallBackFunc(int event, int x, int y, int flags, void* userdata)
 		cout << "Distance from center: " << dist << endl;
 		putText(img, namedist.str(), cvPoint(30, 30), FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 1, CV_AA);
 		line(img, Point(x, y), Point(pointX, pointY), Scalar(255, 255, 255), 2, 8, 0);
-		namedWindow("Distance to center", CV_WINDOW_AUTOSIZE);
-		imshow("Distance to center", img);
+		//namedWindow("Distance to center", CV_WINDOW_AUTOSIZE);
+		//imshow("Distance to center", img);
 		
 		imwrite(name.str(), img);
 		filenumber++;
@@ -99,7 +100,7 @@ void CallBackFunc(int event, int x, int y, int flags, void* userdata)
 		pointX = randomX(randx);
 		pointY = randomY(randy);
 		drawCircle();
-		namedWindow("ImageDisplay", CV_WINDOW_AUTOSIZE);
+		namedWindow("ImageDisplay", CV_WINDOW_NORMAL);
 		imshow("ImageDisplay", img);
 		
 		
@@ -121,7 +122,7 @@ int main(int argc, char** argv)
 	
 
 	//Create a window
-	namedWindow("ImageDisplay", CV_WINDOW_AUTOSIZE);
+	namedWindow("ImageDisplay", CV_WINDOW_NORMAL);
 
 	//set the callback function for any mouse event
 	setMouseCallback("ImageDisplay", CallBackFunc, NULL);
@@ -140,5 +141,3 @@ int main(int argc, char** argv)
 
 	return 0;
 }
-
-
