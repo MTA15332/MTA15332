@@ -17,8 +17,8 @@ int maxS = 255;
 int minV = 0;
 int maxV = 255;
 
-int erossion = 5;
-int dilation = 5;
+int median = 0;
+
 Mat cameraFrame, blurFrame, threshold1, threshold2, closedFrame, hsvFrame, colorObjectFrame, thresholdFrame;
 VideoCapture stream1;
 Mat grayscale;
@@ -28,11 +28,25 @@ Mat background;
 Ptr<BackgroundSubtractor> pMOG2 = createBackgroundSubtractorMOG2(20, 16, true);
 
 
+int angleToCenter(const Point &finger, const Point &center) {
+	float y_angle = center.y - finger.y; //center = 1;
+	float x_angle = finger.x - center.x;// tip =2;
+	float theta = atan(y_angle / x_angle);
+	int angleFinger = (int)round(theta * 180 / PI);
+	return angleFinger;
+}
+
+string integerToString(int num) {
+	stringstream strings;
+	strings << num;
+	string s = strings.str();
+	return s;
+}
 
 void show_windows(Mat background, Mat cameraFrame, Mat foreground, Mat thresholdFrame, Mat hsvFrame){
 	imshow("Background", background); //show the original image
 	imshow("cameraFrame", cameraFrame); //show the original image
-	imshow("foreGround", foreground); //show the original image
+//	imshow("foreGround", foreground); //show the original image
 	imshow("threshold", thresholdFrame); //show the original image
 	imshow("hsv", hsvFrame);
 
@@ -48,7 +62,18 @@ void morphologicalImgProc(Mat &frame) {
 	morphologyEx(frame, frame, MORPH_OPEN, element);
 	morphologyEx(frame, frame, MORPH_CLOSE, element);
 }
-
+void doAction(int totalAngleOfFinger, int fingerSize){
+	if (totalAngleOfFinger >= 270 && totalAngleOfFinger <= 285 && (fingerSize == 5))
+		cout << "scroll-up" << endl;
+	else if (totalAngleOfFinger >= 240 && totalAngleOfFinger <= 255 && fingerSize == 4)
+		cout << "scroll-down" << endl;
+	else if (totalAngleOfFinger >= 190 && totalAngleOfFinger <= 210 && fingerSize == 3)
+		cout << "scroll-to-top" << endl;
+	else if (totalAngleOfFinger >= 120 && totalAngleOfFinger <= 130 && (fingerSize == 2))
+		cout << "refresh-page" << endl;
+	else if (totalAngleOfFinger >= 65 && totalAngleOfFinger <= 75 && (fingerSize == 1))
+		cout << "color-divs" << endl;
+}
 void hand_detection(Mat src, Mat dest){
 	Rect boundRect;
 	int largestObj;
@@ -114,13 +139,26 @@ void hand_detection(Mat src, Mat dest){
 					}
 					else if (j == 0 || abs(convexHullPoint[j - 1].x - convexHullPoint[j].x) >= 12){
 						fingerPoint.push_back(convexHullPoint[pos]);
-						cv::line(dest, centerP, convexHullPoint[pos], Scalar(0, 255, 0), 3, CV_AA, 0);
+						line(dest, centerP, convexHullPoint[pos], Scalar(0, 255, 0), 3, CV_AA, 0);
 						circle(dest, convexHullPoint[pos], 8, Scalar(255, 0, 0), CV_FILLED);
 						pos = j;
 					}
 
 				}
 			}
+			//get the size the fingers, and calculate the total angle of these fingers
+			int countFinger = fingerPoint.size();
+			int angle = 0;
+			if (countFinger <= 5){
+				for (int x = 0; x < countFinger; x++){
+					angle = angle + abs(angleToCenter(fingerPoint[x], centerP));
+				}
+			}
+			//cout << angle << endl;
+			//			resultMsg = doAction(angle, countFinger);
+			doAction(angle, countFinger);
+
+			putText(dest, integerToString(countFinger), printPoint, 1, 5, Scalar(0, 255, 0), 1, 5, false);
 		}
 	}
 }
@@ -138,6 +176,8 @@ void trackbar(int &minH, int &maxH, int &minS, int &maxS, int &minV, int &maxV)
 	cvCreateTrackbar("LowV", "Control", &minV, 255); //Value (0 - 255)
 	cvCreateTrackbar("HighV", "Control", &maxV, 255);
 }
+
+
 
 int main(int, char)
 {
@@ -158,27 +198,26 @@ int main(int, char)
 			cout << "Cannot read a frame from video stream" << endl;
 			break;
 		}
+		
 
 		trackbar(minH, maxH, minS, maxS, minV, maxV);
 
-		pMOG2->apply(cameraFrame, foreground);
+		pMOG2->apply(cameraFrame, background);
 
-		medianBlur(foreground, foreground, 3);
+		cvtColor(cameraFrame, hsvFrame, CV_BGR2HSV);
+	
+		//inRange(hsvFrame, Scalar(64, 117, 255), Scalar(91, 256, 256), thresholdFrame);
+		
+		inRange(hsvFrame, Scalar(minH, minS, minV), Scalar(maxH, maxS, maxV), thresholdFrame);
+		
 
-		cvtColor(foreground, foreground, CV_GRAY2BGR);
-
-		cvtColor(foreground, hsvFrame, CV_BGR2HSV);
-
-		inRange(hsvFrame, Scalar(0, 0, 255), Scalar(256, 256, 256), thresholdFrame);
-
-		//inRange(hsvFrame, Scalar(minH, minS, minV), Scalar(maxH, maxS, maxV), thresholdFrame);
-
-		medianBlur(thresholdFrame, thresholdFrame, 5);
+		medianBlur(thresholdFrame, thresholdFrame, 3);
 
 		morphologicalImgProc(thresholdFrame);
 
 		hand_detection(thresholdFrame, cameraFrame);
 
+		
 		show_windows(background, cameraFrame, foreground, thresholdFrame, hsvFrame);
 
 		if (waitKey(30) == 27) //wait for 'esc' key press for 30ms. If 'esc' key is pressed, break loop

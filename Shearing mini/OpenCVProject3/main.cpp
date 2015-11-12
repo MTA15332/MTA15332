@@ -23,8 +23,8 @@ int backwardmapping(int rows,int cols, float Bx,float By){
 	{
 		for (int c = 0; c < BMout.cols; c++) // Here is the x axis represented by the columns
 		{
-			r1 = abs(r + c * By - maxYOffset); // Calculation to find the points new position.
-			c1 = abs(r * Bx + c - maxXOffset);
+			r1 = abs(r + c * 1/By - maxYOffset); // Calculation to find the points new position.
+			c1 = abs(r * 1/Bx + c - maxXOffset);
 
 			if (r1 >= 0 && r1 < rows && c1 >= 0 && c1 < cols) // If statement to check whether or not the image will be within the boundary
 			{
